@@ -1,18 +1,3 @@
-/**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package org.apache.ibatis.transaction.jdbc;
 
 import java.sql.Connection;
@@ -25,25 +10,33 @@ import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionException;
 
+
 /**
- * {@link Transaction} that makes use of the JDBC commit and rollback facilities directly.
- * It relies on the connection retrieved from the dataSource to manage the scope of the transaction.
- * Delays connection retrieval until getConnection() is called.
- * Ignores commit or rollback requests when autocommit is on.
- *
- * @author Clinton Begin
- *
- * @see JdbcTransactionFactory
+ * JDBC事务
+ * @author Administrator
  */
 public class JdbcTransaction implements Transaction {
 
   private static final Log log = LogFactory.getLog(JdbcTransaction.class);
 
+
   protected Connection connection;
   protected DataSource dataSource;
+  /**
+   * 事务隔离级别
+   */
   protected TransactionIsolationLevel level;
+  /**
+   * 是否自动提交
+   */
   protected boolean autoCommit;
 
+  /**
+   * 构造的同时进行赋值
+   * @param ds
+   * @param desiredLevel
+   * @param desiredAutoCommit
+   */
   public JdbcTransaction(DataSource ds, TransactionIsolationLevel desiredLevel, boolean desiredAutoCommit) {
     dataSource = ds;
     level = desiredLevel;
@@ -62,9 +55,17 @@ public class JdbcTransaction implements Transaction {
     return connection;
   }
 
+  /**
+   * commit()、rollback()、close（）三个方法都使用了Connection来完成具体的操作，
+   * 因此这些方法的前提就是先获取Connection数据库连接
+   * @throws SQLException
+   */
   @Override
   public void commit() throws SQLException {
+    //connection.getAutoCommit() 获取是否是自动提交
     if (connection != null && !connection.getAutoCommit()) {
+      //判断当前日志级别，当日志级别低于DEBUG时，if判断中的内容不会执行，从而避免了字符串拼接的开销
+      //JIT在运行时会优化if语句，如果isDebugEnabled()返回false, 则JIT会将整个if块全部去掉。
       if (log.isDebugEnabled()) {
         log.debug("Committing JDBC Connection [" + connection + "]");
       }
@@ -102,8 +103,7 @@ public class JdbcTransaction implements Transaction {
         connection.setAutoCommit(desiredAutoCommit);
       }
     } catch (SQLException e) {
-      // Only a very poorly implemented driver would fail here,
-      // and there's not much we can do about that.
+      // Only a very poorly implemented driver would fail here and there's not much we can do about that.
       throw new TransactionException("Error configuring AutoCommit.  "
           + "Your driver may not support getAutoCommit() or setAutoCommit(). "
           + "Requested setting: " + desiredAutoCommit + ".  Cause: " + e, e);
@@ -135,7 +135,9 @@ public class JdbcTransaction implements Transaction {
     if (log.isDebugEnabled()) {
       log.debug("Opening JDBC Connection");
     }
+    //数据库连接Connection是从DataSource中获取的
     connection = dataSource.getConnection();
+    //如果设置了事务隔离级别，那么就要获取隔离级别
     if (level != null) {
       connection.setTransactionIsolation(level.getLevel());
     }

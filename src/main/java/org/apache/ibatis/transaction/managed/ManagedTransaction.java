@@ -1,18 +1,3 @@
-/**
- *    Copyright 2009-2017 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package org.apache.ibatis.transaction.managed;
 
 import java.sql.Connection;
@@ -23,16 +8,9 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
-
 /**
- * {@link Transaction} that lets the container manage the full lifecycle of the transaction.
- * Delays connection retrieval until getConnection() is called.
- * Ignores all commit or rollback requests.
- * By default, it closes the connection but can be configured not to do it.
- *
- * @author Clinton Begin
- *
- * @see ManagedTransactionFactory
+ * Transaction让容器管理事务的整个生命周期
+ * @author Administrator
  */
 public class ManagedTransaction implements Transaction {
 
@@ -65,11 +43,13 @@ public class ManagedTransaction implements Transaction {
   @Override
   public void commit() throws SQLException {
     // Does nothing
+    //扩展点-用来集成其他框架
   }
 
   @Override
   public void rollback() throws SQLException {
     // Does nothing
+    //扩展点-用来集成其他框架
   }
 
   @Override
@@ -83,9 +63,11 @@ public class ManagedTransaction implements Transaction {
   }
 
   protected void openConnection() throws SQLException {
+    //判断事务隔离级别
     if (log.isDebugEnabled()) {
       log.debug("Opening JDBC Connection");
     }
+    //Connection从DataSource中获取
     this.connection = this.dataSource.getConnection();
     if (this.level != null) {
       this.connection.setTransactionIsolation(this.level.getLevel());
@@ -93,7 +75,7 @@ public class ManagedTransaction implements Transaction {
   }
 
   @Override
-  public Integer getTimeout() throws SQLException {
+  public Integer getTimeout() {
     return null;
   }
 
