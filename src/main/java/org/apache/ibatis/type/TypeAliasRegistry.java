@@ -1,18 +1,3 @@
-/**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package org.apache.ibatis.type;
 
 import java.math.BigDecimal;
@@ -33,15 +18,28 @@ import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.Resources;
 
 /**
+ * 类型别名注册器
+ *    类型别名：MyBatis中的类型别名就是针对MyBatis中常用的类型进行别名设置，使用别名来代替具体的类型，
+ * 简单点说就是，将具体的类型以别名为键，保存到一个HashMap之中，方便存取。
+ *    类型别名的用途：MyBatis中的类型别名主要用于取代复杂的类型全限定名，
+ * 用于映射器配置文件中进行参数类型与返回结果类型的设置，MyBatis会在进行数据库操作之前进行参数类型别名的解析操作
+ * 获取具体的参数类型，又会在数据库操作之后进行结果类型别名的解析获取具体的结果类型，再
+ * 通过之后要研究的类型处理器进行类型处理来将参数和结果分别进行匹配映射。
  * @author Clinton Begin
  */
 public class TypeAliasRegistry {
 
+  /**
+   * 保存类型注册别名列表
+   */
   private final Map<String, Class<?>> typeAliases = new HashMap<>();
 
+  /**
+   * 构造函数里注册系统内置的类型别名
+   */
   public TypeAliasRegistry() {
     registerAlias("string", String.class);
-
+    //基本数据类型
     registerAlias("byte", Byte.class);
     registerAlias("long", Long.class);
     registerAlias("short", Short.class);
@@ -51,6 +49,7 @@ public class TypeAliasRegistry {
     registerAlias("float", Float.class);
     registerAlias("boolean", Boolean.class);
 
+    //基本数据类型数组类型
     registerAlias("byte[]", Byte[].class);
     registerAlias("long[]", Long[].class);
     registerAlias("short[]", Short[].class);
@@ -77,19 +76,19 @@ public class TypeAliasRegistry {
     registerAlias("_double[]", double[].class);
     registerAlias("_float[]", float[].class);
     registerAlias("_boolean[]", boolean[].class);
-
+    //日期数据类型
     registerAlias("date", Date.class);
     registerAlias("decimal", BigDecimal.class);
     registerAlias("bigdecimal", BigDecimal.class);
     registerAlias("biginteger", BigInteger.class);
     registerAlias("object", Object.class);
-
+    //日期数组数据类型
     registerAlias("date[]", Date[].class);
     registerAlias("decimal[]", BigDecimal[].class);
     registerAlias("bigdecimal[]", BigDecimal[].class);
     registerAlias("biginteger[]", BigInteger[].class);
     registerAlias("object[]", Object[].class);
-
+    //集合型
     registerAlias("map", Map.class);
     registerAlias("hashmap", HashMap.class);
     registerAlias("list", List.class);
@@ -100,8 +99,13 @@ public class TypeAliasRegistry {
     registerAlias("ResultSet", ResultSet.class);
   }
 
+  /**
+   * 如果无法分配类型，则抛出类强制转换异常
+   * @param string
+   * @param <T>
+   * @return
+   */
   @SuppressWarnings("unchecked")
-  // throws class cast exception as well if types cannot be assigned
   public <T> Class<T> resolveAlias(String string) {
     try {
       if (string == null) {
@@ -121,10 +125,20 @@ public class TypeAliasRegistry {
     }
   }
 
+  /**
+   * 包 统一注册方式
+   * @param packageName
+   */
   public void registerAliases(String packageName) {
+    //表明注册指定包名下的所有类
     registerAliases(packageName, Object.class);
   }
 
+  /**
+   * 扫描包下所有继承自supertype的类型别名
+   * @param packageName
+   * @param superType  限定要注册的类的来源，只有继承自该类 才能够被注册
+   */
   public void registerAliases(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
@@ -138,15 +152,28 @@ public class TypeAliasRegistry {
     }
   }
 
+  /**
+   * 设置别名
+   * @param type
+   */
   public void registerAlias(Class<?> type) {
+    //针对未显式指定别名名称的类型，通过Class.getSimpleName()方法来获取类型的别名名称，
+    // 其获取到的其实是类型的首字母小写形式的名称
     String alias = type.getSimpleName();
+    //针对使使用@Alias注解显式指定别名名称的类型（value的值），直接获取该注解中value的值作为别名名称即可
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
     }
+    //调用核心注册方法来实现类型别名的注册
     registerAlias(alias, type);
   }
 
+  /**
+   * 核心类型别名注册方法
+   * @param alias 别名
+   * @param value
+   */
   public void registerAlias(String alias, Class<?> value) {
     if (alias == null) {
       throw new TypeException("The parameter alias cannot be null");
@@ -159,6 +186,11 @@ public class TypeAliasRegistry {
     typeAliases.put(key, value);
   }
 
+  /**
+   * 逐个注册方式
+   * @param alias
+   * @param value
+   */
   public void registerAlias(String alias, String value) {
     try {
       registerAlias(alias, Resources.classForName(value));
