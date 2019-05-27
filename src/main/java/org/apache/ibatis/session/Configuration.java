@@ -81,9 +81,13 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
  * 当前类Configuration即就是Configuration.xml文件
+ * @author Administrator
  */
 public class Configuration {
 
+  /**
+   * 环境
+   */
   protected Environment environment;
 
   protected boolean safeRowBoundsEnabled;
@@ -98,6 +102,9 @@ public class Configuration {
   protected boolean useActualParamName = true;
   protected boolean returnInstanceForEmptyRow;
 
+  /**
+   * 日志前缀
+   */
   protected String logPrefix;
   protected Class<? extends Log> logImpl;
   protected Class<? extends VFS> vfsImpl;
@@ -120,10 +127,8 @@ public class Configuration {
 
   protected String databaseId;
   /**
-   * Configuration factory class.
-   * Used to create Configuration for loading deserialized unread properties.
-   *
-   * @see <a href='https://code.google.com/p/mybatis/issues/detail?id=300'>Issue 300 (google code)</a>
+   * 配置工厂类
+   * 用于创建和加载反序列化未读属性的配置
    */
   protected Class<?> configurationFactory;
 
@@ -161,6 +166,9 @@ public class Configuration {
     this.environment = environment;
   }
 
+  /**
+   * 注册别名
+   */
   public Configuration() {
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
     typeAliasRegistry.registerAlias("MANAGED", ManagedTransactionFactory.class);

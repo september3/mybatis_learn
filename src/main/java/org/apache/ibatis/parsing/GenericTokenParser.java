@@ -1,27 +1,19 @@
-/**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package org.apache.ibatis.parsing;
 
 /**
+ * 通用标记解析器
  * @author Clinton Begin
  */
 public class GenericTokenParser {
 
+  /**
+   * 开始和结束的标记
+   */
   private final String openToken;
   private final String closeToken;
+  /**
+   * 标记处理器
+   */
   private final TokenHandler handler;
 
   public GenericTokenParser(String openToken, String closeToken, TokenHandler handler) {
@@ -30,11 +22,17 @@ public class GenericTokenParser {
     this.handler = handler;
   }
 
+  /**
+   * 解析
+   * @param text 一般指SQL脚本字符串
+   * @return
+   */
   public String parse(String text) {
     if (text == null || text.isEmpty()) {
       return "";
     }
     // search open token
+    //查找openToken对应的下标start
     int start = text.indexOf(openToken);
     if (start == -1) {
       return text;
@@ -43,6 +41,9 @@ public class GenericTokenParser {
     int offset = 0;
     final StringBuilder builder = new StringBuilder();
     StringBuilder expression = null;
+    //即给定text参数中存在openToken子串
+    //如果大于-1（开启循环），验证在给定text的start位置的前一位字符是否为"\"（反斜扛），如果是反斜杠，
+    // 说明获取到的参数被屏蔽了，我们需要去除这个反斜杠，并重新定位offset。当然如果不是反斜扛，说明参数正常
     while (start > -1) {
       if (start > 0 && src[start - 1] == '\\') {
         // this open token is escaped. remove the backslash and continue.

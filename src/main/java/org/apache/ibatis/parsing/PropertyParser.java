@@ -1,23 +1,9 @@
-/**
- *    Copyright 2009-2016 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package org.apache.ibatis.parsing;
 
 import java.util.Properties;
 
 /**
+ * 属性解析器
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -47,15 +33,25 @@ public class PropertyParser {
   private static final String DEFAULT_VALUE_SEPARATOR = ":";
 
   private PropertyParser() {
-    // Prevent Instantiation
+    // 防止实例化
   }
 
+  /**
+   * 解析
+   * @param string
+   * @param variables
+   * @return
+   */
   public static String parse(String string, Properties variables) {
     VariableTokenHandler handler = new VariableTokenHandler(variables);
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);
+    //具体的解析工作交由GenericTokenParser去进行解析
     return parser.parse(string);
   }
 
+  /**
+   * 静态内部类
+   */
   private static class VariableTokenHandler implements TokenHandler {
     private final Properties variables;
     private final boolean enableDefaultValue;
@@ -70,6 +66,7 @@ public class PropertyParser {
     private String getPropertyValue(String key, String defaultValue) {
       return (variables == null) ? defaultValue : variables.getProperty(key, defaultValue);
     }
+
 
     @Override
     public String handleToken(String content) {
