@@ -1,18 +1,3 @@
-/**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package org.apache.ibatis.type;
 
 import java.io.InputStream;
@@ -48,13 +33,26 @@ import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.Resources;
 
 /**
+ * 类型处理器注册器
+ * 类型处理器注册器既能完成类型处理器的注册功能，同时也能对类型处理器进行统筹管理，
+ * 其内部定义了集合来进行类型处理器的存取，同时定义了存取方法。
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
 public final class TypeHandlerRegistry {
 
+  //保存类型处理器的注册信息
+  /**
+   * 将类型处理器注册到对应的数据库类型上
+   */
   private final Map<JdbcType, TypeHandler<?>>  jdbcTypeHandlerMap = new EnumMap<>(JdbcType.class);
+  /**
+   * 嵌套Map集合，应的数据库类型及其处理器，这个集合将三者联系起来，是真正进行三者对应关系匹配的集合。
+   */
   private final Map<Type, Map<JdbcType, TypeHandler<?>>> typeHandlerMap = new ConcurrentHashMap<>();
+  /**
+   * 应的数据库类型及其处理器，这个集合将三者联系起来，是真正进行三者对应关系匹配的集合。
+   */
   private final TypeHandler<Object> unknownTypeHandler = new UnknownTypeHandler(this);
   private final Map<Class<?>, TypeHandler<?>> allTypeHandlersMap = new HashMap<>();
 
@@ -62,9 +60,15 @@ public final class TypeHandlerRegistry {
 
   private Class<? extends TypeHandler> defaultEnumTypeHandler = EnumTypeHandler.class;
 
+  /**
+   * 构造函数里注册系统内置的类型处理器
+   * Mybatis内置注册的类型处理器
+   */
   public TypeHandlerRegistry() {
+    //多个类型注册到同一个handler
     register(Boolean.class, new BooleanTypeHandler());
     register(boolean.class, new BooleanTypeHandler());
+    //jdbcType--数据库类型
     register(JdbcType.BOOLEAN, new BooleanTypeHandler());
     register(JdbcType.BIT, new BooleanTypeHandler());
 
@@ -91,6 +95,9 @@ public final class TypeHandlerRegistry {
     register(double.class, new DoubleTypeHandler());
     register(JdbcType.DOUBLE, new DoubleTypeHandler());
 
+    /**
+     * 以下是为同一个类型的多种变种注册到多个不同的handler
+     */
     register(Reader.class, new ClobReaderTypeHandler());
     register(String.class, new StringTypeHandler());
     register(String.class, JdbcType.CHAR, new StringTypeHandler());
@@ -163,11 +170,10 @@ public final class TypeHandlerRegistry {
     register(char.class, new CharacterTypeHandler());
   }
 
+
   /**
-   * Set a default {@link TypeHandler} class for {@link Enum}.
-   * A default {@link TypeHandler} is {@link org.apache.ibatis.type.EnumTypeHandler}.
-   * @param typeHandler a type handler class for {@link Enum}
-   * @since 3.4.5
+   * 为枚举类设置的默认处理器---EnumTypeHandler
+   * @param typeHandler
    */
   public void setDefaultEnumTypeHandler(Class<? extends TypeHandler> typeHandler) {
     this.defaultEnumTypeHandler = typeHandler;
@@ -305,15 +311,14 @@ public final class TypeHandlerRegistry {
     return unknownTypeHandler;
   }
 
+  /**
+   * 该入口方法用于将类型处理器注册到对应的数据库类型。
+   * @param jdbcType 数据库类型
+   * @param handler 处理器
+   */
   public void register(JdbcType jdbcType, TypeHandler<?> handler) {
     jdbcTypeHandlerMap.put(jdbcType, handler);
   }
-
-  //
-  // REGISTER INSTANCE
-  //
-
-  // Only handler
 
   @SuppressWarnings("unchecked")
   public <T> void register(TypeHandler<T> typeHandler) {
@@ -340,8 +345,12 @@ public final class TypeHandlerRegistry {
     }
   }
 
-  // java type + handler
-
+  /**
+   * 该入口方法用于将类型处理器注册到对应的Java类型。
+   * @param javaType
+   * @param typeHandler
+   * @param <T>
+   */
   public <T> void register(Class<T> javaType, TypeHandler<? extends T> typeHandler) {
     register((Type) javaType, typeHandler);
   }
@@ -364,16 +373,31 @@ public final class TypeHandlerRegistry {
     register(javaTypeReference.getRawType(), handler);
   }
 
-  // java type + jdbc type + handler
 
+  /**
+   * 　该入口方法用于将类型处理器与Java类型和数据库类型联系起来。
+   * @param type
+   * @param jdbcType
+   * @param handler
+   * @param <T>
+   */
   public <T> void register(Class<T> type, JdbcType jdbcType, TypeHandler<? extends T> handler) {
     register((Type) type, jdbcType, handler);
   }
 
+  /**
+   * 核心注册方法
+   * 保证jdbcType、javaType和handler都存在
+   * @param javaType java类型
+   * @param jdbcType 数据库类型
+   * @param handler 处理器
+   */
   private void register(Type javaType, JdbcType jdbcType, TypeHandler<?> handler) {
     if (javaType != null) {
+      //在类型处理器集合中进行获取
       Map<JdbcType, TypeHandler<?>> map = typeHandlerMap.get(javaType);
       if (map == null || map == NULL_TYPE_HANDLER_MAP) {
+        //map为空，创建并加入typeHandlerMap中
         map = new HashMap<>();
         typeHandlerMap.put(javaType, map);
       }
