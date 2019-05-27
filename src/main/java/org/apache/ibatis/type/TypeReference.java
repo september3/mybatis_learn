@@ -19,14 +19,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * References a generic type.
- *
- * @param <T> the referenced type
- * @since 3.1.0
+ *引用泛型类型
+ *适用于获取原生类型
  * @author Simone Tripodi
  */
 public abstract class TypeReference<T> {
-
+  /**
+   * 引用的原生类型
+   */
   private final Type rawType;
 
   protected TypeReference() {

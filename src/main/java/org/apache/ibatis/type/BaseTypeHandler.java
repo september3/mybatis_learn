@@ -8,10 +8,9 @@ import java.sql.SQLException;
 import org.apache.ibatis.executor.result.ResultMapException;
 import org.apache.ibatis.session.Configuration;
 
-
-
 /**
- * 基础类型处理器
+ * 基础类型处理器---Mybatis中的扩展点，只需要继承BaseTypeHandler即可
+ * 主要对设置参数与获取返回结果时数据位null的情况进行了处理，具体的参数设置方法与结果获取方法都是由具体的类型处理器来实现的。
  * @author Administrator
  * @param <T>
  */
