@@ -1,26 +1,15 @@
-/**
- *    Copyright 2009-2018 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package org.apache.ibatis.executor;
-
 /**
+ * 单例模式的体现
+ * 当前类的功能：将执行上下文信息的收集独立出来并集中到一处。
  * @author Clinton Begin
  */
 public class ErrorContext {
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator","\n");
+  /**
+   * 定义一个ThreadLocal来存放ErrorContext，使得该变量属于每个线程各自的数据
+   */
   private static final ThreadLocal<ErrorContext> LOCAL = new ThreadLocal<>();
 
   private ErrorContext stored;
@@ -31,13 +20,22 @@ public class ErrorContext {
   private String sql;
   private Throwable cause;
 
+  /**
+   * 私有构造函数，避免被外部实例初始化
+   */
   private ErrorContext() {
   }
 
+  /**
+   *创建实例的静态方法
+   * @return
+   */
   public static ErrorContext instance() {
+    //获取实例的方法
     ErrorContext context = LOCAL.get();
     if (context == null) {
       context = new ErrorContext();
+      //将创建的ErrorContext放入ThreadLocal中
       LOCAL.set(context);
     }
     return context;
@@ -88,6 +86,10 @@ public class ErrorContext {
     return this;
   }
 
+  /**
+   * 使用完之后，对ThreadLocal中内容进行清空
+   * @return
+   */
   public ErrorContext reset() {
     resource = null;
     activity = null;
@@ -103,14 +105,14 @@ public class ErrorContext {
   public String toString() {
     StringBuilder description = new StringBuilder();
 
-    // message
+    // 自定义的信息
     if (this.message != null) {
       description.append(LINE_SEPARATOR);
       description.append("### ");
       description.append(this.message);
     }
 
-    // resource
+    // 错误来源
     if (resource != null) {
       description.append(LINE_SEPARATOR);
       description.append("### The error may exist in ");
