@@ -3,7 +3,7 @@ package org.apache.ibatis.parsing;
 import java.util.Properties;
 
 /**
- * 属性解析器
+ * 属性解析器---用来解析${}这种形式的表达式
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
